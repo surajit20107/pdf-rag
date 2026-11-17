@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ClerkProvider, Show, SignUp, UserButton } from "@clerk/nextjs";
+import { ClerkProvider, Show, SignUp } from "@clerk/nextjs";
 // @ts-expect-error Next.js handles global CSS imports at build time.
 import "./globals.css";
 import { Suspense } from "react";
+import Header from "@/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,20 +28,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <ClerkProvider>
-          <header className="flex justify-center items-center p-4 gap-4 min-h-screen">
-            <Suspense>
-              <section className="flex items-center gap-4">
-                <Show when="signed-out">
-                  <SignUp />
-                </Show>
-              </section>
-              <Show when="signed-in">
-                {children}
-              </Show>
-            </Suspense>
-          </header>
+          <Suspense>
+            <Show when="signed-out">
+              <div className="flex min-h-screen items-center justify-center">
+                <SignUp />
+              </div>
+            </Show>
+            <Show when="signed-in">
+              <Header />
+              <main>{children}</main>
+            </Show>
+          </Suspense>
         </ClerkProvider>
       </body>
     </html>

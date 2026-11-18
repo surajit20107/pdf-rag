@@ -7,7 +7,7 @@ const Header = () => {
   return (
     <header className="flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-6 sticky top-0">
       {/* Left: Logo + App name */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 cursor-pointer">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/30">
           <FileText className="h-4.5 w-4.5 text-white" />
         </div>
@@ -18,7 +18,7 @@ const Header = () => {
       <UserButton
         appearance={{
           elements: {
-            rootBox: "h-9 w-9",
+            rootBox: "h-10 w-10",
           },
         }}
       />

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Worker } from "bullmq";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -6,11 +7,6 @@ import {
   storeEmbeddings,
   ensureIndexExists,
 } from "./pinecone.js";
-
-import dotenv from "dotenv";
-dotenv.config({
-    path: "./.env",
-});
 
 // Parse Redis URL to get host and port
 // Note: Use full-permissions user (not _ro) for BullMQ

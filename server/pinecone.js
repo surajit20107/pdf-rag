@@ -1,10 +1,9 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import crypto from "crypto";
 
-import dotenv from "dotenv";
-dotenv.config({
-  path: "./.env",
-});
+if (!process.env.PINECONE_API_KEY) {
+  throw new Error("Missing Pinecone API key");
+}
 
 const pineconeClient = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,

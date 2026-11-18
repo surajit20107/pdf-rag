@@ -1,4 +1,27 @@
-📄 PDF RAG
+<div align="center">
+
+# 📚 PDF RAG
+
+### Chat with your PDFs — powered by Retrieval-Augmented Generation
+
+Upload any PDF and ask questions in natural language. Get accurate, grounded answers backed by your own documents — no hallucinations, no guesswork.
+
+<br />
+
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
+[![Pinecone](https://img.shields.io/badge/Pinecone-1B1B1B?style=for-the-badge&logo=pinecone&logoColor=white)](https://www.pinecone.io)
+[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io)
+[![Clerk](https://img.shields.io/badge/Clerk-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)](https://clerk.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+
+<br />
+
+[**Features**](#-features) · [**Architecture**](#️-architecture) · [**Tech Stack**](#-tech-stack) · [**Getting Started**](#-getting-started) · [**API**](#-api-endpoints)
+
+</div>
+
+---
 
 A full-stack Retrieval-Augmented Generation (RAG) application that lets you upload PDF documents and chat with them. Ask questions in natural language and get AI-generated answers grounded in your own documents.
 

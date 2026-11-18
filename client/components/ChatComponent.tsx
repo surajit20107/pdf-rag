@@ -175,7 +175,7 @@ function MessageBubble({ message }: { message: Message }) {
           <TypingIndicator />
         ) : (
           <div
-            className={`max-w-full break-words rounded-2xl px-4 py-3 shadow-sm ${
+            className={`max-w-full wrap-break-word rounded-2xl px-4 py-3 shadow-sm ${
               isUser
                 ? "rounded-tr-md bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-indigo-500/20"
                 : "rounded-tl-md border border-slate-200 bg-white text-slate-700"

@@ -8,7 +8,7 @@ const Header = () => {
     <header className="flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white px-6 sticky top-0">
       {/* Left: Logo + App name */}
       <div className="flex items-center gap-2.5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/30">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/30">
           <FileText className="h-4.5 w-4.5 text-white" />
         </div>
         <span className="text-base font-semibold text-slate-900">PDF RAG</span>

@@ -27,7 +27,7 @@ function MessageBubble({ message }: { message: Message }) {
         {/* Bot avatar + name for assistant */}
         {!isUser && (
           <div className="mb-1.5 flex items-center gap-1.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 shadow-sm shadow-indigo-500/40">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-linear-to-br from-indigo-500 to-violet-600 shadow-sm shadow-indigo-500/40">
               <Bot className="h-3.5 w-3.5 text-white" />
             </div>
             <span className="text-xs font-medium text-slate-500">PDF RAG</span>
@@ -38,7 +38,7 @@ function MessageBubble({ message }: { message: Message }) {
         <div
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
             isUser
-              ? "rounded-br-sm bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-indigo-500/20"
+              ? "rounded-br-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-indigo-500/20"
               : "rounded-bl-sm border border-slate-200 bg-white text-slate-700"
           }`}
         >
@@ -188,7 +188,7 @@ export default function ChatComponent() {
           <button
             onClick={handleSend}
             disabled={!input.trim()}
-            className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm shadow-indigo-500/40 transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+            className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-sm shadow-indigo-500/40 transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Send className="h-3.5 w-3.5" />
           </button>

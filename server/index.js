@@ -3,8 +3,24 @@ import cors from "cors";
 import multer from "multer";
 import crypto from "crypto";
 import { Queue } from 'bullmq';
+import dotenv from "dotenv";
 
-const queue = new Queue("file-upload-queue");
+dotenv.config({
+  path: "./.env",
+});
+
+// Parse Redis URL to get host and port
+const redisUrl = new URL(process.env.REDIS_URL || "redis://localhost:6379");
+
+const queue = new Queue("file-upload-queue", {
+  connection: {
+    host: redisUrl.hostname,
+    port: parseInt(redisUrl.port, 10) || 6379,
+    username: redisUrl.username || undefined,
+    password: redisUrl.password || undefined,
+    tls: redisUrl.protocol === "rediss:",
+  },
+});
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

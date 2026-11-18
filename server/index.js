@@ -67,10 +67,6 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
   res.status(200).json({ message: "File uploaded successfully" });
 });
 
-// app.post("/chat", (req, res) => {
-//   return res.status(500).json({ message: "Not implemented" });
-// });
-
 app.post("/chat", async (req, res) => {
   const userQuery = req.body.query;
   // query the vector db

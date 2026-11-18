@@ -3,6 +3,8 @@
 import { Bot, Send, Paperclip } from "lucide-react";
 import { useRef, useState } from "react";
 import { Bounce, toast } from "react-toastify";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Sample data 
 const SAMPLE_MESSAGES = [
@@ -57,7 +59,7 @@ function MessageBubble({ message }: { message: Message }) {
               : "rounded-bl-sm border border-slate-200 bg-white text-slate-700"
           }`}
         >
-          {message.content}
+          <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
         </div>
 
         {/* Timestamp */}
@@ -80,6 +82,15 @@ export default function ChatComponent() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
+    setMessages([
+      ...messages,
+      {
+        role: "user",
+        content: input,
+        timestamp: new Date().toLocaleTimeString(),
+      }
+    ]);
+    setInput("");
     try {
       const res = await fetch("http://localhost:5000/chat", {
         method: "POST",
@@ -93,8 +104,8 @@ export default function ChatComponent() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setMessages([...messages, { role: "user", content: input, timestamp: new Date().toLocaleTimeString() }, { role: "assistant", content: data.answer, timestamp: new Date().toLocaleTimeString() }]);
-      setInput("");
+      setMessages([...messages, { role: "assistant", content: data.message, timestamp: new Date().toLocaleTimeString() }]);
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (error) {
       toast.error((error as Error)?.message, {
         position: "top-right",

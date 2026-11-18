@@ -4,6 +4,7 @@ import multer from "multer";
 import crypto from "crypto";
 import { Queue } from "bullmq";
 import dotenv from "dotenv";
+import {queryEmbeddings} from "./pinecone.js";
 
 dotenv.config({
   path: "./.env",
@@ -11,6 +12,7 @@ dotenv.config({
 
 // Parse Redis URL to get host and port
 const redisUrl = new URL(process.env.REDIS_URL || "redis://localhost:6379");
+const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX || "pdf-docs";
 
 const queue = new Queue("file-upload-queue", {
   connection: {
@@ -57,6 +59,14 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
     }));
 
     res.status(200).json({ message: "File uploaded successfully" });
+});
+
+app.post("/chat", async (req, res) => {
+  const userQuery = req.body.query;
+  // query the vector db
+  const result = await queryEmbeddings(PINECONE_INDEX_NAME, "whats the user tech stack");
+  res.status(200).json({ result });
+  console.log(result);
 });
 
 app.listen(5000, () => console.log("Server running on http://localhost:5000"));

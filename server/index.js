@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import crypto from "crypto";
-import { Queue } from 'bullmq';
+import { Queue } from "bullmq";
 import dotenv from "dotenv";
 
 dotenv.config({
@@ -54,7 +54,9 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       filePath: req.file.originalname,
       destination: req.file.destination,
       path: req.file.path,
-     }));
+    }));
+
+    res.status(200).json({ message: "File uploaded successfully" });
 });
 
 app.listen(5000, () => console.log("Server running on http://localhost:5000"));

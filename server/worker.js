@@ -10,10 +10,18 @@ dotenv.config({
 const redisUrlStr = process.env.REDIS_URL?.replace("default_ro", "default") || "redis://localhost:6379";
 const redisUrl = new URL(redisUrlStr);
 
+console.log("🔍 Redis config:", {
+  host: redisUrl.hostname,
+  port: redisUrl.port,
+  username: redisUrl.username,
+  protocol: redisUrl.protocol,
+  hasPassword: !!redisUrl.password,
+});
+
 const worker = new Worker(
   "file-upload-queue",
   async (job) => {
-    console.log("Job:", job);
+    console.log("Job:", job.data);
   },
   {
     concurrency: 100,
@@ -22,7 +30,30 @@ const worker = new Worker(
       port: parseInt(redisUrl.port, 10) || 6379,
       username: redisUrl.username || undefined,
       password: redisUrl.password || undefined,
-      tls: redisUrl.protocol === "rediss:",
+      tls: true, // Force TLS for Upstash
     },
   },
 );
+
+// Event listeners for debugging
+worker.on("ready", () => {
+  console.log("✅ Worker ready and listening");
+});
+
+worker.on("error", (err) => {
+  console.error("❌ Worker error:", err.message);
+});
+
+worker.on("completed", (job) => {
+  console.log("✅ Job completed:", job.id);
+});
+
+worker.on("failed", (job, err) => {
+  console.error("❌ Job failed:", err.message);
+});
+
+worker.on("active", (job) => {
+  console.log("📥 Job active:", job.id, "Data:", job.data);
+});
+
+

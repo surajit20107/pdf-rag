@@ -2,6 +2,10 @@
 
 # 📚 PDF RAG
 
+<div align="center">
+  <img src="./assets/banner.svg" alt="PDF RAG banner" width="100%" />
+</div>
+
 ### Chat with your PDFs — powered by Retrieval-Augmented Generation
 
 Upload any PDF and ask questions in natural language. Get accurate, grounded answers backed by your own documents — no hallucinations, no guesswork.

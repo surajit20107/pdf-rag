@@ -214,8 +214,11 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 🙏 Acknowledgements
 
 · LangChain — PDF loading & text splitting
+
 · Pinecone — Vector database & embeddings
+
 · Clerk — Authentication
+
 · BullMQ — Job queue
 
 ---

@@ -62,6 +62,7 @@ export default function ChatComponent() {
   const [input, setInput] = useState("");
   const [error, setError] = useState<null | string>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -103,6 +104,9 @@ export default function ChatComponent() {
         )
       );
       setInput("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
     } catch (error) {
       toast.error((error as Error)?.message, {
         position: "top-right",
@@ -134,15 +138,16 @@ export default function ChatComponent() {
     }
   }, [error]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll the message list (not the page) when messages change
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    const el = scrollRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
   }, [messages]);
 
   return (
-    <div className="flex h-full w-full flex-col bg-slate-50">
+    <div className="flex h-full w-full min-h-0 flex-col bg-slate-50">
       {/* Header */}
       <div className="shrink-0 border-b border-slate-200 bg-white px-6 py-4">
         <h2 className="text-base font-semibold text-slate-900">Chat</h2>
@@ -154,7 +159,7 @@ export default function ChatComponent() {
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-6"
+        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 py-6"
       >
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
@@ -166,6 +171,7 @@ export default function ChatComponent() {
         <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 transition-colors focus-within:border-indigo-400 focus-within:bg-white focus-within:shadow-sm focus-within:shadow-indigo-500/10">
           {/* <Paperclip className="mb-2.5 h-4 w-4 shrink-0 cursor-pointer text-slate-400 transition-colors hover:text-slate-600" /> */}
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);

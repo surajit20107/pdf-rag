@@ -54,7 +54,9 @@ export default function RootLayout({
             </Show>
             <Show when="signed-in">
               <Header />
-              <main>{children}</main>
+              <main className="h-[calc(100dvh-4rem)] overflow-hidden">
+                {children}
+              </main>
             </Show>
           </Suspense>
         </ClerkProvider>

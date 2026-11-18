@@ -17,7 +17,7 @@ Upload any PDF and ask questions in natural language. Get accurate, grounded ans
 
 <br />
 
-[**Features**](#-features) · [**Architecture**](#️-architecture) · [**Tech Stack**](#-tech-stack) · [**Getting Started**](#-getting-started) · [**API**](#-api-endpoints)
+[**Features**](#features) · [**Architecture**](#architecture) · [**Tech Stack**](#tech-stack) · [**Project Structure**](#project-structure) · [**Getting Started**](#getting-started) · [**API**](#api)
 
 </div>
 
@@ -27,7 +27,8 @@ A full-stack Retrieval-Augmented Generation (RAG) application that lets you uplo
 
 ---
 
-✨ Features
+<a id="features"></a>
+## ✨ Features
 
 · 📤 PDF Upload — Drag-and-drop PDF uploads with real-time status feedback
 
@@ -45,7 +46,8 @@ A full-stack Retrieval-Augmented Generation (RAG) application that lets you uplo
 
 ---
 
-🏗️ Architecture
+<a id="architecture"></a>
+## 🏗️ Architecture
 
 ```
 ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
@@ -73,7 +75,8 @@ Flow:
 
 ---
 
-🧰 Tech Stack
+<a id="tech-stack"></a>
+## 🧰 Tech Stack
 
 Layer Technology
 Frontend Next.js, React, Tailwind CSS, react-markdown, remark-gfm
@@ -87,7 +90,8 @@ PDF Parsing LangChain PDFLoader / pdf-parse
 
 ---
 
-📁 Project Structure
+<a id="project-structure"></a>
+## 📁 Project Structure
 
 ```
 pdf-rag/
@@ -114,7 +118,8 @@ pdf-rag/
 
 ---
 
-🚀 Getting Started
+<a id="getting-started"></a>
+## 🚀 Getting Started
 
 Prerequisites
 
@@ -190,7 +195,8 @@ Open http://localhost:3000, sign in, upload a PDF, and start chatting.
 
 ---
 
-🔌 API Endpoints
+<a id="api"></a>
+## 🔌 API Endpoints
 
 Method Endpoint Description
 POST /upload Upload a PDF (multipart/form-data) and enqueue processing

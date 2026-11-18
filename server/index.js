@@ -4,7 +4,8 @@ import multer from "multer";
 import crypto from "crypto";
 import { Queue } from "bullmq";
 import dotenv from "dotenv";
-import {queryEmbeddings} from "./pinecone.js";
+import { queryEmbeddings } from "./pinecone.js";
+import { getFinalResponse } from "./chat.js";
 
 dotenv.config({
   path: "./.env",
@@ -61,12 +62,13 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
     res.status(200).json({ message: "File uploaded successfully" });
 });
 
-app.post("/chat", async (req, res) => {
+app.get("/chat", async (req, res) => {
   const userQuery = req.body.query;
   // query the vector db
-  const result = await queryEmbeddings(PINECONE_INDEX_NAME, "whats the user tech stack");
-  res.status(200).json({ result });
-  console.log(result);
+  const result = await queryEmbeddings(PINECONE_INDEX_NAME, userQuery);
+  const aiResponse = await getFinalResponse(userQuery, result);
+  const uniqueDocs = [...new Set(result.map((doc) => doc.metadata.source))];
+  return res.status(200).json({ message: aiResponse, docs: uniqueDocs });
 });
 
 app.listen(5000, () => console.log("Server running on http://localhost:5000"));

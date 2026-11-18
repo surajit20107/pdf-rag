@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import crypto from "crypto";
+import { Queue } from 'bullmq';
+
+const queue = new Queue("file-upload-queue");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -26,11 +29,16 @@ app.get("/", (_, res) => {
   res.send("Hello from the server!");
 });
 
-app.post("/upload", upload.single("pdf"), (req, res) => {
+app.post("/upload", upload.single("pdf"), async (req, res) => {
     if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+      return res.status(400).json({ error: "No file uploaded" });
     }
-    res.send(req.file.filename);
+
+    await queue.add("file-ready", JSON.stringify({ 
+      filePath: req.file.originalname,
+      destination: req.file.destination,
+      path: req.file.path,
+     }));
 });
 
 app.listen(5000, () => console.log("Server running on http://localhost:5000"));

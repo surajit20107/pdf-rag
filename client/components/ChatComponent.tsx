@@ -1,28 +1,11 @@
 "use client";
 
 import { Bot, Send, Paperclip } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Bounce, toast } from "react-toastify";
+import { v4 as uuidv4 } from "uuid";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
-// Sample data 
-const SAMPLE_MESSAGES = [
-  {
-    id: "1",
-    role: "user" as const,
-    content:
-      "What is retrieval augmented generation and how does it work with PDFs?",
-    timestamp: "10:32 AM",
-  },
-  {
-    id: "2",
-    role: "assistant" as const,
-    content:
-      "Retrieval Augmented Generation (RAG) combines a large language model with a vector database to provide contextually relevant answers from your documents. When you upload a PDF, it gets split into small chunks, converted into vector embeddings using Pinecone's llama-text-embed-v2 model, and stored in a vector database. When you ask a question, your query is embedded and the most semantically similar chunks are retrieved and fed into the LLM's context window, enabling accurate, grounded responses directly from your PDF content.",
-    timestamp: "10:33 AM",
-  },
-];
 
 // Types
 interface Message {
@@ -77,35 +60,49 @@ function MessageBubble({ message }: { message: Message }) {
 export default function ChatComponent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [error, seterror] = useState<null | string>(null);
+  const [error, setError] = useState<null | string>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    setMessages([
-      ...messages,
-      {
-        role: "user",
-        content: input,
-        timestamp: new Date().toLocaleTimeString(),
-      }
-    ]);
-    setInput("");
+
+    const thinkingMsgId = uuidv4();
+    const userMsg = {
+      id: uuidv4(),
+      role: "user" as const,
+      content: input,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    const thinkingMsg = {
+      id: thinkingMsgId,
+      role: "assistant" as const,
+      content: "Thinking...",
+      timestamp: new Date().toLocaleTimeString(),
+    };
+
     try {
+      setMessages((prev) => [...prev, userMsg, thinkingMsg]);
+
       const res = await fetch("http://localhost:5000/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ query: input }),
-      })
+      });
       if (!res.ok) {
         console.error(res);
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setMessages([...messages, { role: "assistant", content: data.message, timestamp: new Date().toLocaleTimeString() }]);
-      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+
+      setError(null);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === thinkingMsgId ? { ...msg, content: data.message } : msg
+        )
+      );
+      setInput("");
     } catch (error) {
       toast.error((error as Error)?.message, {
         position: "top-right",
@@ -118,6 +115,7 @@ export default function ChatComponent() {
         theme: "light",
         transition: Bounce,
       });
+      setError(thinkingMsgId);
     }
   };
 
@@ -127,6 +125,21 @@ export default function ChatComponent() {
       handleSend();
     }
   };
+
+  // Clean up thinking message when error is set
+  useEffect(() => {
+    if (error) {
+      setMessages((prev) => prev.filter((msg) => msg.id !== error));
+      setError(null);
+    }
+  }, [error]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages]);
 
   return (
     <div className="flex h-full w-full flex-col bg-slate-50">

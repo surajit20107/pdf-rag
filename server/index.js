@@ -62,7 +62,7 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
     res.status(200).json({ message: "File uploaded successfully" });
 });
 
-app.get("/chat", async (req, res) => {
+app.post("/chat", async (req, res) => {
   const userQuery = req.body.query;
   // query the vector db
   const result = await queryEmbeddings(PINECONE_INDEX_NAME, userQuery);

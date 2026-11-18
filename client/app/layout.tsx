@@ -5,6 +5,7 @@ import { ClerkProvider, Show, SignUp } from "@clerk/nextjs";
 import "./globals.css";
 import { Suspense } from "react";
 import Header from "@/components/Header";
+import { Bounce, ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,19 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProvider>
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+            transition={Bounce}
+          />
           <Suspense>
             <Show when="signed-out">
               <div className="flex min-h-screen items-center justify-center">

@@ -23,40 +23,53 @@ const queue = new Queue("file-upload-queue", {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/")
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
     crypto.randomBytes(16, function (err, raw) {
-      if (err) return cb(err)
-      cb(null, raw.toString('hex') + '.' + file.originalname.split('.').pop())
-    })
-  }
-})
+      if (err) return cb(err);
+      cb(null, raw.toString("hex") + "." + file.originalname.split(".").pop());
+    });
+  },
+});
 
 const upload = multer({ storage: storage });
 
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  }),
+);
 
 app.get("/", (_, res) => {
   res.send("Hello from the server!");
 });
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
 
-    await queue.add("file-ready", JSON.stringify({ 
+  await queue.add(
+    "file-ready",
+    JSON.stringify({
       filePath: req.file.originalname,
       destination: req.file.destination,
       path: req.file.path,
-    }));
+    }),
+  );
 
-    res.status(200).json({ message: "File uploaded successfully" });
+  res.status(200).json({ message: "File uploaded successfully" });
 });
+
+// app.post("/chat", (req, res) => {
+//   return res.status(500).json({ message: "Not implemented" });
+// });
 
 app.post("/chat", async (req, res) => {
   const userQuery = req.body.query;

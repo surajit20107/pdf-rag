@@ -2,9 +2,9 @@
 
 import { Bot, Send, Paperclip } from "lucide-react";
 import { useRef, useState } from "react";
+import { Bounce, toast } from "react-toastify";
 
-// ── Sample data ────────────────────────────────────────────────────────────────
-
+// Sample data 
 const SAMPLE_MESSAGES = [
   {
     id: "1",
@@ -22,17 +22,15 @@ const SAMPLE_MESSAGES = [
   },
 ];
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
+// Types
 interface Message {
-  id: string;
+  id?: string;
   role: "user" | "assistant";
   content: string;
   timestamp: string;
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
+// Sub-components
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
 
@@ -73,17 +71,43 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
-
+// Main component
 export default function ChatComponent() {
-  const [messages] = useState<Message[]>(SAMPLE_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [error, seterror] = useState<null | string>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
-    console.log("send:", input);
-    setInput("");
+    try {
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: input }),
+      })
+      if (!res.ok) {
+        console.error(res);
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setMessages([...messages, { role: "user", content: input, timestamp: new Date().toLocaleTimeString() }, { role: "assistant", content: data.answer, timestamp: new Date().toLocaleTimeString() }]);
+      setInput("");
+    } catch (error) {
+      toast.error((error as Error)?.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -95,7 +119,7 @@ export default function ChatComponent() {
 
   return (
     <div className="flex h-full w-full flex-col bg-slate-50">
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="shrink-0 border-b border-slate-200 bg-white px-6 py-4">
         <h2 className="text-base font-semibold text-slate-900">Chat</h2>
         <p className="mt-0.5 text-sm text-slate-500">
@@ -103,7 +127,7 @@ export default function ChatComponent() {
         </p>
       </div>
 
-      {/* ── Messages ── */}
+      {/* Messages */}
       <div
         ref={scrollRef}
         className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-6"
@@ -113,18 +137,23 @@ export default function ChatComponent() {
         ))}
       </div>
 
-      {/* ── Input bar ── */}
+      {/* Input bar */}
       <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
         <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 transition-colors focus-within:border-indigo-400 focus-within:bg-white focus-within:shadow-sm focus-within:shadow-indigo-500/10">
-          <Paperclip className="mb-2.5 h-4 w-4 shrink-0 cursor-pointer text-slate-400 transition-colors hover:text-slate-600" />
+          {/* <Paperclip className="mb-2.5 h-4 w-4 shrink-0 cursor-pointer text-slate-400 transition-colors hover:text-slate-600" /> */}
           <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              // Auto-grow up to h-40 (10rem), then scroll
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`; // 160px = h-40 (10 * 16px)
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Ask a question about your PDFs…"
             rows={1}
-            className="min-h-[1.5rem] w-full resize-none bg-transparent py-0.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
-            style={{ lineHeight: "1.5rem" }}
+            className="min-h-10 w-full resize-none overflow-y-auto bg-transparent py-0.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            style={{ lineHeight: "1.5rem", maxHeight: "10rem" }}
           />
           <button
             onClick={handleSend}

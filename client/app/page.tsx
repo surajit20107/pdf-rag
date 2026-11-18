@@ -1,4 +1,5 @@
 import FileUploadComponent from "@/components/file-upload";
+import ChatComponent from "@/components/ChatComponent";
 
 export default function Home() {
   return (
@@ -9,7 +10,9 @@ export default function Home() {
       >
         <FileUploadComponent />
       </div>
-      <div id="chat" className="w-[70vw] min-h-screen border-l-2">2</div>
+      <div id="chat" className="flex w-[70vw] min-h-screen flex-col border-l-2 bg-slate-50">
+        <ChatComponent />
+      </div>
     </div>
   );
 }

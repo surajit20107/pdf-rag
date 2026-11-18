@@ -1,0 +1,143 @@
+"use client";
+
+import { Bot, Send, Paperclip } from "lucide-react";
+import { useRef, useState } from "react";
+
+// ── Sample data ────────────────────────────────────────────────────────────────
+
+const SAMPLE_MESSAGES = [
+  {
+    id: "1",
+    role: "user" as const,
+    content:
+      "What is retrieval augmented generation and how does it work with PDFs?",
+    timestamp: "10:32 AM",
+  },
+  {
+    id: "2",
+    role: "assistant" as const,
+    content:
+      "Retrieval Augmented Generation (RAG) combines a large language model with a vector database to provide contextually relevant answers from your documents. When you upload a PDF, it gets split into small chunks, converted into vector embeddings using Pinecone's llama-text-embed-v2 model, and stored in a vector database. When you ask a question, your query is embedded and the most semantically similar chunks are retrieved and fed into the LLM's context window, enabling accurate, grounded responses directly from your PDF content.",
+    timestamp: "10:33 AM",
+  },
+];
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function MessageBubble({ message }: { message: Message }) {
+  const isUser = message.role === "user";
+
+  return (
+    <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`group flex max-w-[72%] flex-col ${isUser ? "items-end" : "items-start"}`}
+      >
+        {/* Bot avatar + name for assistant */}
+        {!isUser && (
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 shadow-sm shadow-indigo-500/40">
+              <Bot className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span className="text-xs font-medium text-slate-500">PDF RAG</span>
+          </div>
+        )}
+
+        {/* Bubble */}
+        <div
+          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+            isUser
+              ? "rounded-br-sm bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-indigo-500/20"
+              : "rounded-bl-sm border border-slate-200 bg-white text-slate-700"
+          }`}
+        >
+          {message.content}
+        </div>
+
+        {/* Timestamp */}
+        <span
+          className={`mt-1 text-xs text-slate-400 ${isUser ? "mr-1" : "ml-1"}`}
+        >
+          {message.timestamp}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
+export default function ChatComponent() {
+  const [messages] = useState<Message[]>(SAMPLE_MESSAGES);
+  const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    console.log("send:", input);
+    setInput("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="flex h-full w-full flex-col bg-slate-50">
+      {/* ── Header ── */}
+      <div className="shrink-0 border-b border-slate-200 bg-white px-6 py-4">
+        <h2 className="text-base font-semibold text-slate-900">Chat</h2>
+        <p className="mt-0.5 text-sm text-slate-500">
+          Ask questions about your uploaded PDFs.
+        </p>
+      </div>
+
+      {/* ── Messages ── */}
+      <div
+        ref={scrollRef}
+        className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-6"
+      >
+        {messages.map((msg) => (
+          <MessageBubble key={msg.id} message={msg} />
+        ))}
+      </div>
+
+      {/* ── Input bar ── */}
+      <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4">
+        <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 transition-colors focus-within:border-indigo-400 focus-within:bg-white focus-within:shadow-sm focus-within:shadow-indigo-500/10">
+          <Paperclip className="mb-2.5 h-4 w-4 shrink-0 cursor-pointer text-slate-400 transition-colors hover:text-slate-600" />
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask a question about your PDFs…"
+            rows={1}
+            className="min-h-[1.5rem] w-full resize-none bg-transparent py-0.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            style={{ lineHeight: "1.5rem" }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim()}
+            className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm shadow-indigo-500/40 transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Send className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <p className="mt-2 text-center text-xs text-slate-400">
+          Responses are generated from your uploaded documents.
+        </p>
+      </div>
+    </div>
+  );
+}

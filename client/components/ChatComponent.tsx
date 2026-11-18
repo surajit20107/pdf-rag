@@ -410,12 +410,12 @@ export default function ChatComponent() {
           ref={scrollRef}
           onScroll={handleScroll}
           aria-live="polite"
-          className="min-h-0 flex-1 overflow-y-auto scroll-smooth"
+          className="min-h-0 px-8 flex-1 overflow-y-auto scroll-smooth"
         >
           {messages.length === 0 ? (
             <EmptyState onPick={(text) => handleSend(text)} />
           ) : (
-            <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6">
+            <div className="mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6">
               {messages.map((msg) => (
                 <MessageBubble key={msg.id} message={msg} />
               ))}

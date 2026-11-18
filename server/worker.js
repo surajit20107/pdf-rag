@@ -1,4 +1,7 @@
 import { Worker } from "bullmq";
+import { QdrantVectorStore } from "@langchain/qdrant";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { CharacterTextSplitter } from "@langchain/textsplitters";
 
 import dotenv from "dotenv";
 dotenv.config({
@@ -22,6 +25,17 @@ const worker = new Worker(
   "file-upload-queue",
   async (job) => {
     console.log("Job:", job.data);
+    const data = JSON.parse(job.data)
+    const loader = new PDFLoader(data.path);
+    const docs = await loader.load();
+
+    const splitter = new CharacterTextSplitter({
+      chunkSize: 500,
+      chunkOverlap: 50,
+    });
+
+    const chunks = await splitter.splitDocuments(docs);
+    console.log(chunks.length, chunks);
   },
   {
     concurrency: 100,

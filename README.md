@@ -21,7 +21,7 @@ Upload any PDF and ask questions in natural language. Get accurate, grounded ans
 
 <br />
 
-[**Features**](#features) · [**Architecture**](#architecture) · [**Tech Stack**](#tech-stack) · [**Project Structure**](#project-structure) · [**Getting Started**](#getting-started) · [**API**](#api)
+[**Features**](#features) · [**Architecture**](#architecture) · [**Tech Stack**](#tech-stack) · [**Project Structure**](#project-structure) · [**Getting Started**](#getting-started) · [**API**](#api) · [**Contributing**](CONTRIBUTING.md)
 
 </div>
 
@@ -229,6 +229,8 @@ POST /chat request body:
 🤝 Contributing
 
 Contributions are welcome! Feel free to open an issue or submit a pull request.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guidelines on reporting bugs, setting up a development environment, commit conventions, and the pull request process.
 
 1. Fork the repo
 2. Create a feature branch (git checkout -b feat/amazing-feature)

@@ -6,6 +6,10 @@ import crypto from "crypto";
 import { Queue } from "bullmq";
 import { queryEmbeddings } from "./pinecone.js";
 import { getFinalResponse } from "./chat.js";
+import fs from "fs";
+
+const PORT = process.env.PORT || 5000;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 // Parse Redis URL to get host and port
 const redisUrl = new URL(process.env.REDIS_URL || "redis://localhost:6379");
@@ -19,6 +23,15 @@ const queue = new Queue("file-upload-queue", {
     password: redisUrl.password || undefined,
     tls: redisUrl.protocol === "rediss:",
   },
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 2000,
+    },
+    removeOnComplete: true,
+    removeOnFail: true,
+  }
 });
 
 const storage = multer.diskStorage({
@@ -40,14 +53,14 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "*",
+    origin: CLIENT_URL,
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   }),
 );
 
-app.get("/", (_, res) => {
-  res.send("Hello from the server!");
+app.get("/health", (_, res) => {
+  res.status(200).json({ message: "OK" });
 });
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
@@ -55,16 +68,20 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  await queue.add(
-    "file-ready",
-    JSON.stringify({
+  try {
+    const job = await queue.add("file-ready", {
       filePath: req.file.originalname,
       destination: req.file.destination,
       path: req.file.path,
-    }),
-  );
+    });
+    console.log("JOB DATA IN API ROUTE:", job);
+    
+    return res.status(200).json({ message: "File uploaded successfully", jobId: job.id });
+  } catch (err) {
+    fs.unlinkSync(req.file.path);
+    return res.status(500).json({ error: err.message });
+  }
 
-  res.status(200).json({ message: "File uploaded successfully" });
 });
 
 app.post("/chat", async (req, res) => {
@@ -76,4 +93,4 @@ app.post("/chat", async (req, res) => {
   return res.status(200).json({ message: aiResponse, docs: uniqueDocs });
 });
 
-app.listen(5000, () => console.log("Server running on http://localhost:5000"));
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

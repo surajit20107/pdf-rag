@@ -7,6 +7,7 @@ import {
   storeEmbeddings,
   ensureIndexExists,
 } from "./pinecone.js";
+import fs from "fs";
 
 // Parse Redis URL to get host and port
 // Note: Use full-permissions user (not _ro) for BullMQ
@@ -29,7 +30,7 @@ const worker = new Worker(
   "file-upload-queue",
   async (job) => {
     console.log("Job:", job.data);
-    const data = JSON.parse(job.data);
+    const data = job.data;
 
     // 1. Load the PDF
     const loader = new PDFLoader(data.path);
@@ -74,6 +75,7 @@ const worker = new Worker(
     );
 
     console.log(`✅ Stored ${chunks.length} chunk(s) in Pinecone index "${PINECONE_INDEX_NAME}"`);
+    fs.unlinkSync(data.path); // remove the uploaded file
     return { success: true, chunksProcessed: chunks.length };
   },
   {

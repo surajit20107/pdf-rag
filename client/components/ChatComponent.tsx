@@ -37,6 +37,7 @@ const SUGGESTIONS = [
   "Explain the main concepts simply",
   "List any action items or deadlines",
 ];
+const SERVER_URL = process.env.API_BASE_URL || "http://localhost:5000";
 
 // Shared markdown styling.
 const baseProse = [
@@ -293,7 +294,7 @@ export default function ChatComponent() {
       setInput("");
       resetTextareaHeight();
 
-      const res = await fetch("http://localhost:5000/chat", {
+      const res = await fetch(`${SERVER_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),

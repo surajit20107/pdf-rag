@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "node --watch index.js",
     "dev:worker": "node --watch worker.js",
-    "start": "node index.js"
+    "start:server": "node index.js",
+    "start:worker": "node worker.js",
+    "start": "node index.js && node worker.js",
+    "pc:clear": "node cleaner.js"
   },
   "type": "module",
   "dependencies": {

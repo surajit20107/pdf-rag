@@ -4,6 +4,7 @@ import { FileUp, Loader2 } from "lucide-react";
 import * as React from "react";
 
 const FileUpload: React.FC = () => {
+  const SERVER_URL = process.env.API_BASE_URL || "http://localhost:5000";
   const [isUploading, setIsUploading] = React.useState(false);
   const [uploadStatus, setUploadStatus] = React.useState<
     "idle" | "success" | "error"
@@ -23,7 +24,7 @@ const FileUpload: React.FC = () => {
       const formData = new FormData();
       formData.append("pdf", file);
 
-      const response = await fetch("http://localhost:5000/upload", {
+      const response = await fetch(`${SERVER_URL}/upload`, {
         method: "POST",
         body: formData,
       });
@@ -72,7 +73,7 @@ const FileUpload: React.FC = () => {
           {isUploading ? (
             <Loader2 className="mb-2 h-10 w-10 animate-spin text-indigo-500" />
           ) : (
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/30 transition-transform group-hover:scale-105">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/30 transition-transform group-hover:scale-105">
               <FileUp className="h-5 w-5 text-white" />
             </div>
           )}
@@ -86,7 +87,7 @@ const FileUpload: React.FC = () => {
               Upload failed. Try again.
             </span>
           ) : selectedFile ? (
-            <span className="text-sm font-medium text-slate-700 truncate max-w-[200px]">
+            <span className="text-sm font-medium text-slate-700 truncate max-w-50">
               {selectedFile.name}
             </span>
           ) : (

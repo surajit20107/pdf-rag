@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDF RAG — Client
+
+The Next.js frontend for [PDF RAG](../README.md). It provides a Clerk-protected UI for uploading PDFs and chatting with the documents indexed by the backend.
+
+Built with Next.js 15 (App Router), React 19, Tailwind CSS 4, TypeScript, Clerk, and `react-markdown`.
+
+## Prerequisites
+
+- Node.js 18+
+- The [Express backend](../server) running on `http://localhost:5000` (or a custom URL, see [Configuration](#configuration))
+- A [Clerk](https://clerk.com) application with a publishable and secret key
+
+The full stack also needs Redis, Pinecone, and an LLM endpoint, but those are configured on the server — see the [root README](../README.md#-getting-started).
 
 ## Getting Started
 
-First, run the development server:
+From the repository root:
+
+```bash
+cd client
+npm install
+```
+
+Create a `.env.local` file (env files are gitignored):
+
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+API_BASE_URL=http://localhost:5000
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000), sign in with Clerk, upload a PDF, and start asking questions.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Used for | Default |
+| --- | --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk authentication (browser) | — |
+| `CLERK_SECRET_KEY` | Clerk authentication (server) | — |
+| `API_BASE_URL` | Backend URL used by the upload and chat components | `http://localhost:5000` |
 
-## Learn More
+> **Note:** The two API calls are made from client components, and Next.js only exposes `NEXT_PUBLIC_*` variables to browser code. With the current code, a custom `API_BASE_URL` won't be available in the browser, so the fallback (`http://localhost:5000`) is used. Either keep the backend on port 5000, or rename the variable to `NEXT_PUBLIC_API_BASE_URL` in `.env.local` and in `components/file-upload.tsx` / `components/ChatComponent.tsx`.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the dev server with Turbopack |
+| `npm run build` | Build for production with Turbopack |
+| `npm run start` | Serve the production build |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## What's here
 
-## Deploy on Vercel
+```
+client/
+├── app/
+│   ├── layout.tsx          # Root layout: ClerkProvider, Header, toasts, signed-in/out views
+│   ├── page.tsx            # Two-panel layout: PDF upload + chat
+│   ├── globals.css         # Tailwind CSS and custom animations
+│   └── favicon.ico
+├── components/
+│   ├── Header.tsx          # App bar with logo and Clerk UserButton
+│   ├── file-upload.tsx     # PDF picker; POSTs to /upload
+│   └── ChatComponent.tsx   # Chat UI; POSTs to /chat, renders Markdown answers
+├── middleware.ts           # Clerk middleware
+├── .env.local              # Your local keys (not committed)
+├── next.config.ts
+└── postcss.config.mjs         # Tailwind CSS 4 setup
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Behavior
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Auth:** Visitors see Clerk's `SignUp` component; signed-in users get the app shell and a `UserButton` in the header.
+- **Upload:** Selecting a PDF submits it as `multipart/form-data` to `POST {API_BASE_URL}/upload` with the field name `pdf`. The UI shows upload progress, success, or error state (client-side limit note: PDFs up to 10 MB).
+- **Chat:** `POST {API_BASE_URL}/chat` sends `{ "query": "..." }` and renders `data.message` as GitHub-flavored Markdown (headings, lists, tables, code blocks). Answers are grounded in the uploaded documents by the backend's RAG pipeline.
+- **UX:** Suggested prompts, typing indicator, auto-scrolling, copy-to-clipboard, "New chat" reset, Enter to send / Shift+Enter for a new line, and toast notifications for errors.
+
+For architecture, backend setup, and API details, see the [root README](../README.md).

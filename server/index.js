@@ -64,7 +64,7 @@ app.get("/health", (_, res) => {
   res.status(200).json({ message: "OK" });
 });
 
-app.post("/upload", writeLimiter, upload.single("pdf"), async (req, res) => {
+app.post("/upload", /* writeLimiter, */ upload.single("pdf"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -85,7 +85,7 @@ app.post("/upload", writeLimiter, upload.single("pdf"), async (req, res) => {
 
 });
 
-app.post("/chat", readLimiter, async (req, res) => {
+app.post("/chat", /* readLimiter, */ async (req, res) => {
   const userQuery = req.body.query;
   // query the vector db
   const result = await queryEmbeddings(PINECONE_INDEX_NAME, userQuery);

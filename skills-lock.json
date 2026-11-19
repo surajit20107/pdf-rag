@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "skills": {
+    "opencode-delegate": {
+      "source": "sickn33/agentic-awesome-skills",
+      "commit": "64d4b7263f2ae74790437fbe378655e606eb2b65",
+      "sourceType": "github",
+      "skillPath": "skills/opencode-delegate/SKILL.md",
+      "computedHash": "b3be52eb9ae30214e1a91f936e91994dc8f9fecf6c9b65b4f6abd0fb59a17d01"
+    },
+    "security-audit": {
+      "source": "cloudflare/security-audit-skill",
+      "commit": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+      "sourceType": "github",
+      "skillPath": "skills/security-audit/SKILL.md",
+      "computedHash": "8513eb3b2c39b8d05ef4f47b32ef4d18280b93a5efb91d8df6272f7435034af5"
+    }
+  }
+}

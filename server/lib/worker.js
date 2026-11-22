@@ -30,6 +30,18 @@ const EMBED_BATCH_SIZE = 96; // Pinecone inference limit per request
 // How many embed/upsert round-trips to have in flight at once. Higher is faster
 // but more likely to hit Pinecone rate limits; tune per plan.
 const BATCH_CONCURRENCY = Number(process.env.INGEST_CONCURRENCY) || 4;
+// Large documents raise concurrency up to this ceiling so a single big PDF can
+// use the bandwidth that small uploads don't need. Rate-limited requests are
+// retried, so overshooting degrades to slower rather than failing.
+const MAX_BATCH_CONCURRENCY = Math.max(
+  Number(process.env.INGEST_MAX_CONCURRENCY) || 10,
+  BATCH_CONCURRENCY,
+);
+// Bigger chunks mean fewer embedding requests for the same document, which is
+// the cheapest way to make large PDFs faster. 1000/150 keeps retrieval quality
+// close to 500/50 while roughly halving the number of vectors.
+const CHUNK_SIZE = Number(process.env.CHUNK_SIZE) || 1000;
+const CHUNK_OVERLAP = Number(process.env.CHUNK_OVERLAP) || 150;
 const MAX_ATTEMPTS = 4;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -102,11 +114,13 @@ const worker = new Worker(
     // 2. Split into overlapping chunks
     const splitStart = Date.now();
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 500,
-      chunkOverlap: 50,
+      chunkSize: CHUNK_SIZE,
+      chunkOverlap: CHUNK_OVERLAP,
     });
     const chunks = await splitter.splitDocuments(docs);
-    console.log(`✂️  Created ${chunks.length} chunk(s) in ${elapsed(splitStart)}`);
+    console.log(
+      `✂️  Created ${chunks.length} chunk(s) in ${elapsed(splitStart)} (chunkSize ${CHUNK_SIZE}, overlap ${CHUNK_OVERLAP})`,
+    );
 
     if (chunks.length === 0) {
       console.log("⚠️  No text found in PDF, skipping.");
@@ -125,9 +139,17 @@ const worker = new Worker(
       batches.push(chunks.slice(i, i + EMBED_BATCH_SIZE));
     }
 
+    // Scale concurrency with document size: a small upload keeps the gentle
+    // default, a large one fans out further to use the spare throughput.
+    const batchConcurrency = Math.min(
+      MAX_BATCH_CONCURRENCY,
+      Math.max(BATCH_CONCURRENCY, Math.ceil(batches.length / 4)),
+    );
+    console.log(`🚀 ${batches.length} batch(es) at concurrency ${batchConcurrency}`);
+
     let processed = 0;
 
-    await mapWithConcurrency(batches, BATCH_CONCURRENCY, async (batch, batchIndex) => {
+    await mapWithConcurrency(batches, batchConcurrency, async (batch, batchIndex) => {
       const label = `batch ${batchIndex + 1}/${batches.length}`;
 
       // Chunks within a batch keep their order, so embeddings line up by index.

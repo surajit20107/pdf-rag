@@ -65,6 +65,7 @@ Then start the [client](../client/README.md) with `npm run dev` and open http://
 | `PINECONE_INDEX_NAME` | Optional override used by the worker | falls back to `PINECONE_INDEX` |
 | `PINECONE_CLOUD` / `PINECONE_REGION` | Serverless index creation | `aws` / `us-east-1` |
 | `OPENAI_API_KEY` | LLM requests in `lib/chat.js` | — |
+| `INGEST_CONCURRENCY` | Embed/upsert batches processed in parallel per job | `4` |
 
 The LLM provider (`https://api.bluesminds.com/v1`) and model (`deepseek-v4.1-flash-uncen`) are currently hardcoded in `lib/chat.js`. The embedding model (`llama-text-embed-v2`, 1024 dimensions, cosine) is set in `lib/pinecone.js`.
 
@@ -83,6 +84,7 @@ The LLM provider (`https://api.bluesminds.com/v1`) and model (`deepseek-v4.1-fla
 | --- | --- | --- |
 | `GET` | `/health` | Health check — returns `{ "message": "OK" }` |
 | `POST` | `/upload` | Multipart upload (field name `pdf`) — saves the file to `uploads/` and enqueues processing |
+| `GET` | `/upload/:jobId` | Ingestion status — `{ jobId, state, progress, result, error }` |
 | `POST` | `/chat` | JSON `{ "query": "..." }` — retrieves context and returns `{ "message": answer, "docs": [...] }` |
 
 `POST /upload` responds with `{ "message": "File uploaded successfully", "jobId": ... }`, or `400` when no file is provided. `POST /chat` responds with the LLM answer in `message` and the unique source filenames in `docs`.
@@ -97,9 +99,9 @@ Upload ─► uploads/ ─► BullMQ "file-upload-queue" ─► Worker ─► Pi
 Query ───────────────────────────────────────────────► Pinecone ─► LLM ─► Answer
 ```
 
-1. **Upload** — Multer stores the PDF with a random hex filename in `uploads/`; the API adds a `file-ready` job and responds immediately. Jobs retry up to 3 times with exponential backoff and are removed when finished.
+1. **Upload** — Multer stores the PDF with a random hex filename in `uploads/`; the API adds a `file-ready` job and responds immediately with its `jobId`. Jobs retry up to 3 times with exponential backoff; completed jobs are kept for an hour (failed ones for a day) so `GET /upload/:jobId` can still report their outcome.
 2. **Parse & chunk** — The worker loads the PDF with LangChain's `PDFLoader`, then splits it into 500-character chunks with 50-character overlap.
-3. **Embed & store** — Chunks are embedded in batches of 96 with Pinecone's hosted model (`input_type: "passage"`), and upserted with metadata (`source`, `pageNumber`, `totalPages`, `text`). The index is created automatically (1024 dimensions, cosine, serverless) if it doesn't exist. The local file is deleted after a successful run.
+3. **Embed & store** — Chunks are embedded in batches of 96 with Pinecone's hosted model (`input_type: "passage"`) and upserted with metadata (`source`, `pageNumber`, `totalPages`, `text`). Batches are pipelined (embedded, then upserted, then the next) with up to `INGEST_CONCURRENCY` in flight, so large PDFs are searchable before the whole file is done; transient `429`/`5xx` responses are retried with backoff. The index is created automatically (1024 dimensions, cosine, serverless) if it doesn't exist, and that check is cached after the first job. Each batch reports progress on the job. The local file is deleted after a successful run.
 4. **Retrieve** — On `/chat`, the query is embedded (`input_type: "query"`) and the top 5 matching chunks are fetched from Pinecone.
 5. **Generate** — The chunks are injected into the system prompt as JSON context, the question is sent to the LLM, and the answer plus source filenames are returned to the client.
 

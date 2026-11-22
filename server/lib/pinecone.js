@@ -66,8 +66,23 @@ export async function ensureIndexExists(indexName, dimension = EMBEDDING_DIMENSI
   await waitForIndexReady(indexName);
 }
 
+// The index only needs to be created/checked once per process, not once per job.
+const indexReadyPromises = new Map();
+
+export function ensureIndexExistsCached(indexName, dimension = EMBEDDING_DIMENSION) {
+  if (!indexReadyPromises.has(indexName)) {
+    const promise = ensureIndexExists(indexName, dimension).catch((err) => {
+      // Drop the cached promise so a later job can retry after a transient failure.
+      indexReadyPromises.delete(indexName);
+      throw err;
+    });
+    indexReadyPromises.set(indexName, promise);
+  }
+  return indexReadyPromises.get(indexName);
+}
+
 // Pinecone metadata only accepts strings, numbers, booleans, or string arrays.
-function sanitizeMetadata(metadata = {}) {
+export function sanitizeMetadata(metadata = {}) {
   const clean = {};
   for (const [key, value] of Object.entries(metadata)) {
     if (value === undefined || value === null) continue;
@@ -93,9 +108,6 @@ export async function storeEmbeddings(indexName, chunks, embeddings, options = {
   }
 
   const { namespace, batchSize = 96 } = options;
-  const index = namespace
-    ? pineconeClient.Index(indexName).namespace(namespace)
-    : pineconeClient.Index(indexName);
 
   const records = chunks.map((chunk, i) => ({
     id: crypto.randomUUID(),
@@ -107,10 +119,25 @@ export async function storeEmbeddings(indexName, chunks, embeddings, options = {
   }));
 
   for (let i = 0; i < records.length; i += batchSize) {
-    await index.upsert({ records: records.slice(i, i + batchSize) });
+    await upsertVectors(indexName, records.slice(i, i + batchSize), { namespace });
   }
 
   console.log(`✅ Stored ${records.length} vectors in index "${indexName}"`);
+  return records.length;
+}
+
+/**
+ * Upsert one already-built batch of vector records.
+ * Kept separate so callers can pipeline embed → upsert instead of embedding everything first.
+ */
+export async function upsertVectors(indexName, records, options = {}) {
+  if (!records || records.length === 0) return 0;
+
+  const index = options.namespace
+    ? pineconeClient.Index(indexName).namespace(options.namespace)
+    : pineconeClient.Index(indexName);
+
+  await index.upsert({ records });
   return records.length;
 }
 

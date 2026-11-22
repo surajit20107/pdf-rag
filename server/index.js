@@ -30,8 +30,9 @@ const queue = new Queue("file-upload-queue", {
       type: "exponential",
       delay: 2000,
     },
-    removeOnComplete: true,
-    removeOnFail: true,
+    // Keep finished jobs briefly so GET /upload/:jobId can report their progress.
+    removeOnComplete: { age: 3600, count: 1000 },
+    removeOnFail: { age: 24 * 3600 },
   }
 });
 
@@ -83,6 +84,29 @@ app.post("/upload", /* writeLimiter, */ upload.single("pdf"), async (req, res) =
     return res.status(500).json({ error: err.message });
   }
 
+});
+
+app.get("/upload/:jobId", async (req, res) => {
+  try {
+    const job = await queue.getJob(req.params.jobId);
+
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    const state = await job.getState();
+
+    return res.status(200).json({
+      jobId: job.id,
+      state,
+      progress: job.progress,
+      result: job.returnvalue ?? null,
+      error: job.failedReason ?? null,
+    });
+  } catch (err) {
+    console.error("Failed to read job status:", err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 app.post("/chat", /* readLimiter, */ async (req, res) => {
